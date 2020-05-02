@@ -1,6 +1,7 @@
 import React from "react"
 import { withRouter } from "react-router-dom"
 import Modal from "react-modal"
+import firebase from "firebase"
 
 Modal.setAppElement("#root")  // モーダルをトップページに設置する
 
@@ -23,15 +24,27 @@ class Button extends React.Component {
         this.setState({ modalIsOpen: false });
     }
 
+    pushPlayerName(playerName) {
+        var database = firebase.database()
+        var playerId = database.ref("player").push({
+            "name": playerName,
+            "roomId": "",
+            "score": ""
+        })
+        console.log(playerId["path"]["pieces_"][1])
+    }
+
     // ページを移動する
     movePage() {
         const link = this.props.link  // 移動先のURL
         const mode = this.props.mode  // solo:1人 muliti:みんな
+        const playerName = this.state.playerName
+        this.pushPlayerName(playerName)
         this.props.history.push({
             pathname: link,
             state: {
                 "mode": mode,
-                "playerName": this.state.playerName
+                "playerName": playerName
             }
         })
     }
