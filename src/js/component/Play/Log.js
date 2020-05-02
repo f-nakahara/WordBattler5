@@ -1,6 +1,5 @@
 import React from "react"
 import EventListener from "react-event-listener"
-import { animateScroll } from "react-scroll"
 
 class Log extends React.Component {
     constructor(props) {
@@ -23,7 +22,6 @@ class Log extends React.Component {
             "height": window.innerHeight,
             "width": window.innerWidth
         })
-        this.componentDidMount()
     }
 
     render() {
