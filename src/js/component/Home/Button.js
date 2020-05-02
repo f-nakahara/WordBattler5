@@ -9,7 +9,7 @@ class Button extends React.Component {
         super(props)
         this.state = {
             modalIsOpen: false,  // モーダルオープン判定
-            playerName: ""  // プレイヤー名
+            playerName: "unknown"  // プレイヤー名
         };
     }
 
