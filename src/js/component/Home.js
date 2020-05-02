@@ -17,7 +17,7 @@ class Home extends React.Component {
                 </div>
                 <div className="row mt-3">
                     <div className="col-3"></div>
-                    <div className="col-3 p-1"><Button text="1人で遊ぶ" link="/play" color="primary" mode="solo" /></div>
+                    <div className="col-3 p-1"><Button text="ひとりで遊ぶ" link="/play" color="primary" mode="solo" /></div>
                     <div className="col-3 p-1"><Button text="みんなで遊ぶ" link="/play" color="danger" mode="multi" /></div>
                     <div className="col-3"></div>
 

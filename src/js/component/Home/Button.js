@@ -9,29 +9,33 @@ class Button extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            modalIsOpen: false,  // モーダルオープン判定
-            playerName: "unknown"  // プレイヤー名
+            "modalIsOpen": false,  // モーダルオープン判定
+            "playerName": "unknown",  // プレイヤー名
+            "playerId": ""
         };
     }
 
     // モーダルを開く
     openModal() {
-        this.setState({ modalIsOpen: true });
+        this.setState({ "modalIsOpen": true });
     }
 
     // モーダルを閉じる
     closeModal() {
-        this.setState({ modalIsOpen: false });
+        this.setState({ "modalIsOpen": false });
     }
 
+    // プレイヤー情報をデータベースに登録する
     pushPlayerName(playerName) {
         var database = firebase.database()
         var playerId = database.ref("player").push({
             "name": playerName,
             "roomId": "",
             "score": ""
+        })["path"]["pieces_"][1]
+        this.setState({
+            "playerId": playerId
         })
-        console.log(playerId["path"]["pieces_"][1])
     }
 
     // ページを移動する
@@ -44,7 +48,8 @@ class Button extends React.Component {
             pathname: link,
             state: {
                 "mode": mode,
-                "playerName": playerName
+                "playerName": playerName,
+                "playerId": this.state.playerId
             }
         })
     }
