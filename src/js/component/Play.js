@@ -11,14 +11,16 @@ class Play extends React.Component {
         super(props)
         this.state = {
             "height": window.innerHeight,
-            "width": ""
+            "width": window.innerWidth,
+            "max": (window.innerHeight > window.innerWidth) ? window.innerWidth : innerHeight
         }
     }
 
     handleResize() {
         this.setState({
             "height": window.innerHeight,
-            "width": window.innerWidth
+            "width": window.innerWidth,
+            "max": (window.innerHeight > window.innerWidth) ? window.innerWidth : innerHeight
         })
         this.componentDidMount()
     }
@@ -27,7 +29,7 @@ class Play extends React.Component {
         // const playerName = this.props.location.state.playerName
 
         return (
-            <div style={{ backgroundImage: `url(${window.location.origin}/../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.height}px` }}>
+            <div style={{ backgroundImage: `url(../../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.height}px` }}>
                 <EventListener target="window" onResize={this.handleResize.bind(this)} />
                 <Header playerName="koudai" roomName="渕田研究室" />
                 {/* <img src={`${window.location.origin}/../../../image/background/doukutu.png`} /> */}
@@ -36,7 +38,8 @@ class Play extends React.Component {
                         <Term />
                     </div>
                     <div className="col-6 text-center">
-                        <h1>ステージ1</h1>
+                        <h1 className="w-100">ステージ1</h1>
+                        <img src={`${window.location.origin}/../../../image/enemy/enemy_1DJTZRy.png`} style={{ height: `${this.state.max / 2.5}px` }} />
                     </div>
                     <div className="col-3">
                         <Log />
