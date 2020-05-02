@@ -4,6 +4,8 @@ import Log from "./Play/Log"
 import Term from "./Play/Term"
 import Form from "./Play/Form"
 import EventListener from "react-event-listener"
+import HitPoint from "./Play/HitPoint"
+import Theme from "./Play/Theme"
 
 
 class Play extends React.Component {
@@ -39,10 +41,16 @@ class Play extends React.Component {
                     </div>
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
-                        <img src={`${window.location.origin}/../../../image/enemy/enemy_1DJTZRy.png`} style={{ height: `${this.state.max / 2.5}px` }} />
+                        <img src={`../../../../image/enemy/enemy_1DJTZRy.png`} style={{ height: `${this.state.max / 2.5}px` }} />
+                        <Theme />
                     </div>
                     <div className="col-3">
                         <Log />
+                    </div>
+                </div>
+                <div className="row m-5">
+                    <div className="col-12">
+                        <HitPoint />
                     </div>
                 </div>
                 <div className="row m-5">
