@@ -6,6 +6,7 @@ import Form from "./Play/Form"
 import EventListener from "react-event-listener"
 import Theme from "./Play/Theme"
 import { HitPoint, EnemyImage } from "./Play/Enemy"
+import firebase from "firebase"
 
 
 class Play extends React.Component {
@@ -14,10 +15,30 @@ class Play extends React.Component {
         this.state = {
             "height": window.innerHeight,
             "width": window.innerWidth,
-            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
+            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight,
+            "theme": ""
         }
     }
 
+    // 描画完成後に実行
+    componentDidMount() {
+        this.monitorPlayerTheme()
+    }
+
+    // プレイヤーテーマの監視
+    monitorPlayerTheme() {
+        var database = firebase.database()
+        var playerTheme = database.ref("player/test/theme")
+        playerTheme.on("value", (snapshot) => {
+            const theme = snapshot.val()
+            console.log(theme)
+            this.setState({
+                "theme": theme
+            })
+        })
+    }
+
+    // 画面サイズ変更時実行
     handleResize() {
         this.setState({
             "height": window.innerHeight,
@@ -41,7 +62,7 @@ class Play extends React.Component {
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
                         <EnemyImage max={this.state.max} />
-                        <Theme />
+                        <Theme theme={this.state.theme} />
                     </div>
                     <div className="col-3">
                         <Log max={this.state.max} />
