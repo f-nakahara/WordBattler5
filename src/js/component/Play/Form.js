@@ -16,8 +16,7 @@ class Form extends React.Component {
         this.focusAttackInput()
     }
 
-    // 攻撃処理
-    doAttack(e) {
+    handleAttackSubmit(e) {
         e.preventDefault()
         const keyword = this.state.keyword
         const theme = this.props.theme
@@ -25,38 +24,75 @@ class Form extends React.Component {
         axios.get(api)
             .then((res) => {
                 const damage = parseInt(res.data.damage * 100)
-                var database = firebase.database()
-                var roomRef = database.ref("room/roomId")
-                var effectList = this.props.effectList
-
-                // 敵のHPを削る
-                roomRef.once("value", (snapshot) => {
-                    const enemyHp = snapshot.val().enemyHp
-                    const oldEffect = snapshot.val().effect
-                    const newEffectList = effectList.filter((value) => {
-                        if (damage >= 60) {
-                            return value.match(/big/) && oldEffect != value
-                        }
-                        else if (damage > 0) {
-                            return value.match(/min/) && oldEffect != value
-                        }
-                        else if (damage < 0) {
-                            return value.match(/kaihuku/) && oldEffect != value
-                        }
-                        else {
-                            return value.match(/mukou/) && oldEffect != value
-                        }
-                    })
-                    const newEffect = newEffectList[Math.floor(Math.random() * newEffectList.length)]
-
-                    roomRef.update({
-                        "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0,
-                        "effect": newEffect
-                    })
-                })
+                this.damageProcess(damage)
+                this.effectProcess(damage)
+                this.logProcess(keyword, theme, damage)
             })
         this.setState({
             "keyword": ""
+        })
+    }
+
+    // ログ処理
+    logProcess(keyword, theme, damage) {
+        var database = firebase.database()
+        const playerId = this.props.playerId
+        database.ref(`player/${playerId}/log`).push({
+            "damage": damage,
+            "keyword": keyword,
+            "theme": theme
+        })
+    }
+
+    // 攻撃処理
+    damageProcess(damage) {
+        var database = firebase.database()
+        const playerId = this.props.playerId
+        const roomId = this.props.roomId
+        var roomRef = database.ref(`room/${roomId}`)
+        var playerRef = database.ref(`player/${playerId}`)
+        playerRef.update({
+            "damage": damage
+        })
+
+        // 敵のHPを削る
+        roomRef.once("value", (snapshot) => {
+            const enemyHp = snapshot.val().enemyHp
+            roomRef.update({
+                "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0
+            })
+        })
+
+    }
+
+    // エフェクト処理
+    effectProcess(damage) {
+        var database = firebase.database()
+        const roomId = this.props.roomId
+        var roomRef = database.ref(`room/${roomId}`)
+        var effectList = this.props.effectList
+
+        roomRef.once("value", (snapshot) => {
+            const oldEffect = snapshot.val().effect
+            const newEffectList = effectList.filter((value) => {
+                if (damage >= 60) {
+                    return value.match(/big/) && oldEffect != value
+                }
+                else if (damage > 0) {
+                    return value.match(/min/) && oldEffect != value
+                }
+                else if (damage < 0) {
+                    return value.match(/kaihuku/) && oldEffect != value
+                }
+                else {
+                    return value.match(/mukou/) && oldEffect != value
+                }
+            })
+            const newEffect = newEffectList[Math.floor(Math.random() * newEffectList.length)]
+
+            roomRef.update({
+                "effect": newEffect
+            })
         })
     }
 
@@ -95,7 +131,7 @@ class Form extends React.Component {
                         type="submit"
                         value="送信"
                         className="btn btn-danger w-25"
-                        onClick={this.doAttack.bind(this)}
+                        onClick={this.handleAttackSubmit.bind(this)}
                     >
                     </input>
                 </form>

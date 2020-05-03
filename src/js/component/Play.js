@@ -19,7 +19,8 @@ class Play extends React.Component {
             "theme": "",
             "effectList": [],
             "themeList": [],
-            "effect": ""
+            "effect": "",
+            "log": []
         }
         // firebase.database().ref("theme").once("value", (snapshot) => {
         //     this.setState({
@@ -44,29 +45,27 @@ class Play extends React.Component {
     // 描画完成後に実行
     componentDidMount() {
         var database = firebase.database()
-        var playerRef = database.ref("player")
-        var roomRef = database.ref("room")
-        this.monitorPlayerTheme(playerRef)
+        const playerId = "test"
+        const roomId = "roomId"
+        var playerRef = database.ref(`player/${playerId}`)
+        var roomRef = database.ref(`room/${roomId}`)
+        this.monitorPlayer(playerRef)
         this.monitorRoom(roomRef)
     }
 
     // プレイヤーのthemeの監視
-    monitorPlayerTheme(playerRef) {
-        const playerName = "test"
-        var playerTheme = playerRef.child(`${playerName}/theme`)
-        playerTheme.on("value", (snapshot) => {
-            const theme = snapshot.val()
-            this.setState({
-                "theme": theme
-            })
+    monitorPlayer(playerRef) {
+        playerRef.on("child_changed", (snapshot) => {
+            const key = snapshot.key
+            switch (key) {
+                case "log": this.changeLog(snapshot.val()); break;
+            }
         })
     }
 
-    // ルームのeffectの監視
+    // ルームの監視
     monitorRoom(roomRef) {
-        var roomId = "roomId"
-        var RoomEffect = roomRef.child(`${roomId}`)
-        RoomEffect.on("child_changed", (snapshot) => {
+        roomRef.on("child_changed", (snapshot) => {
             const key = snapshot.key
             switch (key) {
                 case "effect": this.changeEffect(snapshot.val()); break;
@@ -74,6 +73,19 @@ class Play extends React.Component {
         })
     }
 
+    // ログ変更
+    changeLog(value) {
+        console.log(value)
+        var data = []
+        for (var key in value) {
+            data.push(value[key])
+        }
+        this.setState({
+            "log": data
+        })
+    }
+
+    // エフェクト変更
     changeEffect(value) {
         this.setState({
             "effect": value
@@ -91,12 +103,13 @@ class Play extends React.Component {
 
     render() {
         // const playerName = this.props.location.state.playerName
+        // const playerId = this.props.location.state.playerId
+        // const roomId = this.props.location.state.roomId
 
         return (
             <div style={{ backgroundImage: `url(../../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.height}px` }}>
                 <EventListener target="window" onResize={this.handleResize.bind(this)} />
                 <Header playerName="koudai" roomName="渕田研究室" />
-                {/* <img src={`${window.location.origin}/../../../image/background/doukutu.png`} /> */}
                 <div className="row m-3">
                     <div className="col-3">
                         <Term />
@@ -107,7 +120,7 @@ class Play extends React.Component {
                         <Theme theme={this.state.theme} />
                     </div>
                     <div className="col-3">
-                        <Log max={this.state.max} />
+                        <Log max={this.state.max} log={this.state.log} />
                     </div>
                 </div>
                 <div className="row m-5">
@@ -117,7 +130,7 @@ class Play extends React.Component {
                 </div>
                 <div className="row m-5">
                     <div className="col-12">
-                        <Form theme={this.state.theme} effectList={this.state.effectList} />
+                        <Form theme={this.state.theme} effectList={this.state.effectList} playerId={"test"} roomId={"roomId"} />
                     </div>
                 </div>
             </div>

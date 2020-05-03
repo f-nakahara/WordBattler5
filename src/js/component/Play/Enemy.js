@@ -7,7 +7,6 @@ class EnemyImage extends React.Component {
     render() {
         var effectImage = (<div></div>)
         if (this.props.effect != "") {
-            console.log(this.props.effect)
             effectImage = (<img src={`../../../image/effect/${this.props.effect}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
         }
         return (
