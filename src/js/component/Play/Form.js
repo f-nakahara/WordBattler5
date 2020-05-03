@@ -30,8 +30,10 @@ class Form extends React.Component {
                 // 敵のHPを削る
                 roomRef.once("value", (snapshot) => {
                     const enemyHp = snapshot.val().enemyHp
+                    const isHit = snapshot.val().isHit
                     roomRef.update({
-                        "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0
+                        "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0,
+                        "isHit": isHit + 1
                     })
                 })
             })
