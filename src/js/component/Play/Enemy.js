@@ -5,10 +5,15 @@ class EnemyImage extends React.Component {
         super(props)
     }
     render() {
+        var effectImage = (<div></div>)
+        if (this.props.effect != "") {
+            console.log(this.props.effect)
+            effectImage = (<img src={`../../../image/effect/${this.props.effect}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
+        }
         return (
             <div>
-                <img src={`../../../image/enemy/enemy_1DJTZRy.png`} style={{ height: `${this.props.max / 2.5}px` }} />
-                <img src={`../../../image/effect/big1.gif`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />
+                <img src={`../../../image/enemy/enemy1.png`} style={{ height: `${this.props.max / 2.5}px` }} />
+                {effectImage}
             </div>
         )
     }

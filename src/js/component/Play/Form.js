@@ -1,6 +1,7 @@
 import React from "react"
 import axios from "axios"
 import firebase from "firebase"
+import filter from "filter"
 
 class Form extends React.Component {
     constructor(props) {
@@ -19,27 +20,49 @@ class Form extends React.Component {
     doAttack(e) {
         e.preventDefault()
         const keyword = this.state.keyword
-        const theme = "神様"
+        const theme = this.props.theme
         const api = `http://localhost:5000/play/attack?theme=${theme}&keyword=${keyword}`
         axios.get(api)
             .then((res) => {
                 const damage = parseInt(res.data.damage * 100)
                 var database = firebase.database()
                 var roomRef = database.ref("room/roomId")
+                var effectList = this.props.effectList
 
                 // 敵のHPを削る
                 roomRef.once("value", (snapshot) => {
                     const enemyHp = snapshot.val().enemyHp
-                    const isHit = snapshot.val().isHit
+                    const oldEffect = snapshot.val().effect
+                    const newEffectList = effectList.filter((value) => {
+                        if (damage >= 60) {
+                            return value.match(/big/) && oldEffect != value
+                        }
+                        else if (damage > 0) {
+                            return value.match(/min/) && oldEffect != value
+                        }
+                        else if (damage < 0) {
+                            return value.match(/kaihuku/) && oldEffect != value
+                        }
+                        else {
+                            return value.match(/mukou/) && oldEffect != value
+                        }
+                    })
+                    const newEffect = newEffectList[Math.floor(Math.random() * newEffectList.length)]
+
                     roomRef.update({
                         "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0,
-                        "isHit": isHit + 1
+                        "effect": newEffect
                     })
                 })
             })
         this.setState({
             "keyword": ""
         })
+    }
+
+    // お題の変更
+    changeTheme() {
+
     }
 
     // キーワード変更

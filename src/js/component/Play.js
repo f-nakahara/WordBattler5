@@ -16,25 +16,67 @@ class Play extends React.Component {
             "height": window.innerHeight,
             "width": window.innerWidth,
             "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight,
-            "theme": ""
+            "theme": "",
+            "effectList": [],
+            "themeList": [],
+            "effect": ""
         }
+        // firebase.database().ref("theme").once("value", (snapshot) => {
+        //     this.setState({
+        //         "themeList": snapshot.val()
+        //     })
+        // })
+
+    }
+
+
+    componentWillMount() {
+        var database = firebase.database()
+        var effectRef = database.ref("effect")
+        effectRef.once("value", (snapshot) => {
+            const effectList = snapshot.val()
+            this.setState({
+                "effectList": effectList
+            })
+        })
     }
 
     // 描画完成後に実行
     componentDidMount() {
-        this.monitorPlayerTheme()
+        var database = firebase.database()
+        var playerRef = database.ref("player")
+        var roomRef = database.ref("room")
+        this.monitorPlayerTheme(playerRef)
+        this.monitorRoom(roomRef)
     }
 
-    // プレイヤーテーマの監視
-    monitorPlayerTheme() {
-        var database = firebase.database()
-        var playerTheme = database.ref("player/test/theme")
+    // プレイヤーのthemeの監視
+    monitorPlayerTheme(playerRef) {
+        const playerName = "test"
+        var playerTheme = playerRef.child(`${playerName}/theme`)
         playerTheme.on("value", (snapshot) => {
             const theme = snapshot.val()
-            console.log(theme)
             this.setState({
                 "theme": theme
             })
+        })
+    }
+
+    // ルームのeffectの監視
+    monitorRoom(roomRef) {
+        var roomId = "roomId"
+        var RoomEffect = roomRef.child(`${roomId}`)
+        RoomEffect.on("child_changed", (snapshot) => {
+            const key = snapshot.key
+            switch (key) {
+                case "effect": this.changeEffect(snapshot.val()); break;
+            }
+        })
+    }
+
+    changeEffect(value) {
+        this.setState({
+            "effect": value
         })
     }
 
@@ -61,7 +103,7 @@ class Play extends React.Component {
                     </div>
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
-                        <EnemyImage max={this.state.max} />
+                        <EnemyImage max={this.state.max} effect={this.state.effect} />
                         <Theme theme={this.state.theme} />
                     </div>
                     <div className="col-3">
@@ -75,7 +117,7 @@ class Play extends React.Component {
                 </div>
                 <div className="row m-5">
                     <div className="col-12">
-                        <Form />
+                        <Form theme={this.state.theme} effectList={this.state.effectList} />
                     </div>
                 </div>
             </div>
