@@ -4,8 +4,8 @@ import Log from "./Play/Log"
 import Term from "./Play/Term"
 import Form from "./Play/Form"
 import EventListener from "react-event-listener"
-import HitPoint from "./Play/HitPoint"
 import Theme from "./Play/Theme"
+import { HitPoint, EnemyImage } from "./Play/Enemy"
 
 
 class Play extends React.Component {
@@ -14,7 +14,7 @@ class Play extends React.Component {
         this.state = {
             "height": window.innerHeight,
             "width": window.innerWidth,
-            "max": (window.innerHeight > window.innerWidth) ? window.innerWidth : innerHeight
+            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
         }
     }
 
@@ -22,9 +22,8 @@ class Play extends React.Component {
         this.setState({
             "height": window.innerHeight,
             "width": window.innerWidth,
-            "max": (window.innerHeight > window.innerWidth) ? window.innerWidth : innerHeight
+            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
         })
-        this.componentDidMount()
     }
 
     render() {
@@ -41,11 +40,11 @@ class Play extends React.Component {
                     </div>
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
-                        <img src={`../../../../image/enemy/enemy_1DJTZRy.png`} style={{ height: `${this.state.max / 2.5}px` }} />
+                        <EnemyImage max={this.state.max} />
                         <Theme />
                     </div>
                     <div className="col-3">
-                        <Log />
+                        <Log max={this.state.max} />
                     </div>
                 </div>
                 <div className="row m-5">

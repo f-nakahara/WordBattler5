@@ -1,13 +1,8 @@
 import React from "react"
-import EventListener from "react-event-listener"
 
 class Log extends React.Component {
     constructor(props) {
         super(props)
-        this.state = {
-            "height": window.innerHeight,
-            "width": window.innerWidth
-        }
     }
 
     componentDidMount() {
@@ -17,17 +12,9 @@ class Log extends React.Component {
         })
     }
 
-    handleResize() {
-        this.setState({
-            "height": window.innerHeight,
-            "width": window.innerWidth
-        })
-    }
-
     render() {
         return (
             <div>
-                <EventListener target="window" onResize={this.handleResize.bind(this)} />
                 <div className="card">
                     <div className="card-header text-center">
                         <div className="h3">ログ</div>
@@ -35,7 +22,7 @@ class Log extends React.Component {
                     <div
                         className="card-body"
                         style={{
-                            height: `${this.state.height / 4}px`,
+                            height: `${this.props.max / 5}px`,
                             overflow: "scroll"
                         }}
                     >
