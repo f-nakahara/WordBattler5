@@ -15,7 +15,6 @@ class Log extends React.Component {
     }
 
     render() {
-        console.log(this.props.log)
         return (
             <div>
                 <div className="card">
@@ -30,7 +29,6 @@ class Log extends React.Component {
                         }}
                     >
                         {this.props.log.map(function (value, index, array) {
-                            console.log(value)
                             const logMsg = `●【${value.theme}】<=【${value.keyword}】`
                             const damage =
                                 (value.damage >= 60) ? (<span className="text-danger">{value.damage}ダメージ！！</span>) :

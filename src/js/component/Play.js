@@ -22,16 +22,10 @@ class Play extends React.Component {
             "effect": "",
             "log": []
         }
-        // firebase.database().ref("theme").once("value", (snapshot) => {
-        //     this.setState({
-        //         "themeList": snapshot.val()
-        //     })
-        // })
-
     }
 
-
-    componentWillMount() {
+    // エフェクトリストの取得
+    getEffectList() {
         var database = firebase.database()
         var effectRef = database.ref("effect")
         effectRef.once("value", (snapshot) => {
@@ -40,6 +34,23 @@ class Play extends React.Component {
                 "effectList": effectList
             })
         })
+    }
+
+    // お題リストの取得
+    getThemeList() {
+        firebase.database().ref("theme").once("value", (snapshot) => {
+            const themeList = snapshot.val()
+            this.setState({
+                "themeList": themeList
+            })
+            this.changeTheme()
+        })
+    }
+
+    // 描画前に実行
+    componentWillMount() {
+        this.getEffectList()
+        this.getThemeList()
     }
 
     // 描画完成後に実行
@@ -73,9 +84,26 @@ class Play extends React.Component {
         })
     }
 
+    // お題の変更
+    changeTheme() {
+        var themeList = this.state.themeList
+        if (themeList.length == 0) {
+            this.getThemeList()
+        }
+        else {
+            const theme = themeList[Math.floor(Math.random() * themeList.length)]
+            themeList = themeList.filter(function (value) {
+                return value !== theme
+            })
+            this.setState({
+                "themeList": themeList,
+                "theme": theme
+            })
+        }
+    }
+
     // ログ変更
     changeLog(value) {
-        console.log(value)
         var data = []
         for (var key in value) {
             data.push(value[key])
@@ -83,6 +111,7 @@ class Play extends React.Component {
         this.setState({
             "log": data
         })
+        this.changeTheme()
     }
 
     // エフェクト変更
