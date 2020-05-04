@@ -27,7 +27,7 @@ class HitPoint extends React.Component {
     render() {
         return (
             <div>
-                <meter min="0" max="" low="" high="" optimum="" value="" className="w-100"></meter>
+                <meter min="0" max="100" low="30" high="60" optimum="100" value="100" className="w-100"></meter>
             </div>
         )
     }
