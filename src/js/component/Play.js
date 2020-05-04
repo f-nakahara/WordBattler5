@@ -15,7 +15,8 @@ class Play extends React.Component {
         this.state = {
             "player": {
                 "id": "test",
-                "name": "koudai"
+                "name": "koudai",
+                "form": true
             },
             "room": {
                 "id": "roomId",
@@ -39,6 +40,10 @@ class Play extends React.Component {
                 "image": "",
                 "hp": "",
                 "maxHp": ""
+            },
+            "term": {
+                "name": "",
+                "value": ""
             }
         }
     }
@@ -92,12 +97,42 @@ class Play extends React.Component {
         })
     }
 
+    // 条件の取得
+    getTerm() {
+        firebase.database().ref(`room/${this.state.room.id}/term`).once("value", (snapshot) => {
+            this.setState({
+                "term": {
+                    "name": snapshot.val().name,
+                    "value": snapshot.val().value
+                }
+            })
+            if (snapshot.val().name == "time")
+                this.timeProcess(snapshot.val().value)
+        })
+    }
+
+    // 制限時間の制御
+    timeProcess(value) {
+        var time = value
+        var timer = setInterval(() => {
+            time -= 1
+            var term = this.state.term
+            term.value = time
+            this.setState(term)
+            if (time == 0) {
+                clearInterval(timer)
+                this.changePlayerForm(false)
+            }
+        }, 1000)
+    }
+
     // 描画前に実行
     componentWillMount() {
         this.getEffectList()
         this.getThemeList()
         this.getLogList()
         this.getEnemy()
+        this.getTerm()
     }
 
     // 描画完成後に実行
@@ -129,15 +164,37 @@ class Play extends React.Component {
                 case "effect": this.changeEffect(snapshot.val()); break;
                 case "enemyHp": this.changeEnemyHp(snapshot.val()); break;
                 case "log": this.changeLog(snapshot.val()); break;
+                case "term": this.changeTermValue(snapshot.val()); break;
             }
         })
+    }
+
+    // 条件値の変更
+    changeTermValue(value) {
+        var term = this.state.term
+        const termValue = value.value
+        term.value = termValue
+        if (termValue <= 0) {
+            this.changePlayerForm(false)
+        }
+        this.setState(term)
     }
 
     // HPの変更
     changeEnemyHp(value) {
         var enemy = this.state.enemy
         enemy.hp = value
+        if (value <= 0) {
+            this.changePlayerForm(false)
+        }
         this.setState(enemy)
+    }
+
+    // プレイヤーフォームの変更
+    changePlayerForm(value) {
+        var player = this.state.player
+        player.form = value
+        this.setState(player)
     }
 
     // 敵の変更
@@ -208,7 +265,7 @@ class Play extends React.Component {
                 <Header playerName={this.state.player.name} roomName={this.state.room.name} />
                 <div className="row m-3">
                     <div className="col-3">
-                        <Term />
+                        <Term term={this.state.term} />
                     </div>
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
@@ -226,7 +283,7 @@ class Play extends React.Component {
                 </div>
                 <div className="row m-5">
                     <div className="col-12">
-                        <Form theme={this.state.theme} effect={this.state.effect} player={this.state.player} room={this.state.room} />
+                        <Form theme={this.state.theme} effect={this.state.effect} player={this.state.player} room={this.state.room} term={this.state.term} />
                     </div>
                 </div>
             </div>

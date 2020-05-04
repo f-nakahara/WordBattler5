@@ -29,7 +29,6 @@ class HitPoint extends React.Component {
 
 
     render() {
-        console.log(this.props.enemy)
         return (
             <div>
                 <meter min="0" max={this.props.enemy.maxHp} low={this.props.enemy.maxHp / 4} high={this.props.enemy.maxHp / 4 * 3} optimum={this.props.enemy.maxHp} value={this.props.enemy.hp} className="w-100"></meter>

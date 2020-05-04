@@ -23,6 +23,7 @@ class Form extends React.Component {
         axios.get(api)
             .then((res) => {
                 const damage = parseInt(res.data.damage * 100)
+                this.termProcess()
                 this.damageProcess(damage)
                 this.effectProcess(damage)
                 this.logProcess(keyword, theme, damage)
@@ -30,6 +31,20 @@ class Form extends React.Component {
         this.setState({
             "keyword": ""
         })
+    }
+
+    // 条件処理
+    termProcess() {
+        var termName = this.props.term.name
+        var termValue = this.props.term.value
+        if (termName == "count") {
+            var database = firebase.database()
+            const roomId = this.props.room.id
+            var roomRef = database.ref(`room/${roomId}`)
+            roomRef.child(`term`).update({
+                "value": termValue - 1
+            })
+        }
     }
 
     // ログ処理
@@ -122,8 +137,9 @@ class Form extends React.Component {
     }
 
     render() {
-        return (
-            <div>
+        var playerForm
+        if (this.props.player.form) {
+            playerForm = (
                 <form className="form-inline">
                     <input
                         id="keywordInput"
@@ -141,6 +157,34 @@ class Form extends React.Component {
                     >
                     </input>
                 </form>
+            )
+        }
+        else {
+            playerForm = (
+                <form className="form-inline">
+                    <input
+                        id="keywordInput"
+                        value={this.state.keyword}
+                        className="form-control w-75"
+                        onChange={this.changeKeyword.bind(this)}
+                        disabled
+                    >
+
+                    </input>
+                    <input
+                        type="submit"
+                        value="送信"
+                        className="btn btn-danger w-25"
+                        onClick={this.handleAttackSubmit.bind(this)}
+                        disabled
+                    >
+                    </input>
+                </form>
+            )
+        }
+        return (
+            <div>
+                {playerForm}
             </div>
         )
     }
