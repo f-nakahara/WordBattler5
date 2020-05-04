@@ -7,6 +7,9 @@ import EventListener from "react-event-listener"
 import Theme from "./Play/Theme"
 import { HitPoint, EnemyImage } from "./Play/Enemy"
 import firebase from "firebase"
+import HomeButton from "./Play/HomeButton"
+import Result from "./Play/Result"
+import ReactPlayer from "react-player"
 
 
 class Play extends React.Component {
@@ -16,11 +19,16 @@ class Play extends React.Component {
             "player": {
                 "id": "test",
                 "name": "koudai",
-                "form": true
+                "form": true,
+                "result": false,
+                "score": 0
             },
             "room": {
                 "id": "roomId",
-                "name": "渕田研究室"
+                "name": "渕田研究室",
+                "diffLevel": "easy",
+                "score": 0,
+                "playerNum": 1
             },
             "window": {
                 "height": window.innerHeight,
@@ -39,13 +47,37 @@ class Play extends React.Component {
             "enemy": {
                 "image": "",
                 "hp": "",
-                "maxHp": ""
+                "maxHp": "",
+                "next": "2"
             },
             "term": {
                 "name": "",
                 "value": ""
             }
         }
+    }
+
+    // プレイヤーの取得
+    getPlayer() {
+        var database = firebase.database()
+        const playerId = "test"
+        database.ref(`player/${playerId}`).once("value", (snapshot) => {
+            var player = this.state.player
+            player.score = snapshot.val().score
+            this.setState(player)
+        })
+    }
+
+    // ルームの取得
+    getRoom() {
+        var database = firebase.database()
+        const roomId = "roomId"
+        database.ref(`room/${roomId}`).once("value", (snapshot) => {
+            var room = this.state.room
+            room.score = snapshot.val().score
+            room.playerNum = snapshot.val().playerNum
+            this.setState(room)
+        })
     }
 
     // エフェクトリストの取得
@@ -91,7 +123,8 @@ class Play extends React.Component {
                 "enemy": {
                     "image": snapshot.val().image,
                     "hp": snapshot.val().hp,
-                    "maxHp": snapshot.val().hp
+                    "maxHp": snapshot.val().hp,
+                    "next": snapshot.val().next
                 }
             })
         })
@@ -111,7 +144,7 @@ class Play extends React.Component {
         })
     }
 
-    // 制限時間の制御
+    // タイマー処理
     timeProcess(value) {
         var time = value
         var timer = setInterval(() => {
@@ -119,15 +152,21 @@ class Play extends React.Component {
             var term = this.state.term
             term.value = time
             this.setState(term)
-            if (time == 0) {
+            if (time <= 0) {
+                term.value = 0
+                this.setState(term)
                 clearInterval(timer)
                 this.changePlayerForm(false)
+                this.changeResult(true)
+                this.rankingProcess()
             }
         }, 1000)
     }
 
     // 描画前に実行
     componentWillMount() {
+        this.getPlayer()
+        this.getRoom()
         this.getEffectList()
         this.getThemeList()
         this.getLogList()
@@ -165,7 +204,29 @@ class Play extends React.Component {
                 case "enemyHp": this.changeEnemyHp(snapshot.val()); break;
                 case "log": this.changeLog(snapshot.val()); break;
                 case "term": this.changeTermValue(snapshot.val()); break;
+                case "enemy": this.changeEnemy(snapshot.val()); break;
             }
+        })
+    }
+
+    // ランキング処理
+    rankingProcess() {
+        const playerId = this.state.player.id
+        const playerName = this.state.player.name
+        const playerNum = this.state.room.playerNum
+        const playerScore = this.state.player.score
+        const roomId = this.state.room.id
+        const roomScore = this.state.room.score
+        var database = firebase.database()
+        var rankingRef = database.ref(`ranking/${playerNum}/${roomId}`)
+        rankingRef.child("player").update({
+            [playerId]: {
+                "name": playerName,
+                "score": playerScore
+            }
+        })
+        rankingRef.update({
+            "score": roomScore
         })
     }
 
@@ -176,6 +237,8 @@ class Play extends React.Component {
         term.value = termValue
         if (termValue <= 0) {
             this.changePlayerForm(false)
+            this.changeResult(true)
+            this.rankingProcess()
         }
         this.setState(term)
     }
@@ -184,10 +247,23 @@ class Play extends React.Component {
     changeEnemyHp(value) {
         var enemy = this.state.enemy
         enemy.hp = value
+        this.setState(enemy)
         if (value <= 0) {
             this.changePlayerForm(false)
+            this.getPlayer()
+            this.getRoom()
+            this.changeResult(true)
+            this.rankingProcess()
         }
-        this.setState(enemy)
+    }
+
+    // 結果画面の変更
+    changeResult(value) {
+        var player = this.state.player
+        player.result = value
+        this.setState(
+            player
+        )
     }
 
     // プレイヤーフォームの変更
@@ -198,8 +274,21 @@ class Play extends React.Component {
     }
 
     // 敵の変更
-    changeEnemy() {
-
+    changeEnemy(value) {
+        var enemy = this.state.enemy
+        enemy.hp = value.hp
+        enemy.maxHp = value.hp
+        enemy.image = value.image
+        enemy.next = value.next
+        var syoukanEffect = ["syoukan4.gif", "syoukan5.gif"]
+        var effectValue = syoukanEffect[Math.floor(Math.random() * syoukanEffect.length)]
+        this.changeResult(false)
+        this.setState(enemy)
+        this.setState({
+            "effect": {
+                "value": effectValue
+            }
+        })
     }
 
     // お題の変更
@@ -258,7 +347,6 @@ class Play extends React.Component {
         // const playerName = this.props.location.state.playerName
         // const playerId = this.props.location.state.playerId
         // const roomId = this.props.location.state.roomId
-
         return (
             <div style={{ backgroundImage: `url(../../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.window.height}px` }}>
                 <EventListener target="window" onResize={this.handleResize.bind(this)} />
@@ -268,7 +356,7 @@ class Play extends React.Component {
                         <Term term={this.state.term} />
                     </div>
                     <div className="col-6 text-center">
-                        <h1 className="w-100">ステージ1</h1>
+                        <h1 className="w-100">ステージ{parseInt(this.state.enemy.next) - 1}</h1>
                         <EnemyImage window={this.state.window} effect={this.state.effect} enemy={this.state.enemy} />
                         <Theme theme={this.state.theme} />
                     </div>
@@ -286,6 +374,13 @@ class Play extends React.Component {
                         <Form theme={this.state.theme} effect={this.state.effect} player={this.state.player} room={this.state.room} term={this.state.term} />
                     </div>
                 </div>
+                <div className="row m-0 p-0">
+                    <div className="col-12 text-center m-0">
+                        <HomeButton />
+                    </div>
+                </div>
+                <Result player={this.state.player} room={this.state.room} enemy={this.state.enemy} />
+                <ReactPlayer url="../../audio/Crystal_Battle.mp3" volume={0.2} loop playing style={{ display: "none" }} />
             </div>
         )
     }

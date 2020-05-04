@@ -24,6 +24,7 @@ class Form extends React.Component {
             .then((res) => {
                 const damage = parseInt(res.data.damage * 100)
                 this.termProcess()
+                this.scoreProcess(damage)
                 this.damageProcess(damage)
                 this.effectProcess(damage)
                 this.logProcess(keyword, theme, damage)
@@ -75,11 +76,6 @@ class Form extends React.Component {
         var database = firebase.database()
         const roomId = this.props.room.id
         var roomRef = database.ref(`room/${roomId}`)
-        const playerId = this.props.player.id
-        var playerRef = database.ref(`player/${playerId}`)
-        playerRef.update({
-            "damage": damage
-        })
 
         // 敵のHPを削る
         roomRef.once("value", (snapshot) => {
@@ -89,6 +85,21 @@ class Form extends React.Component {
             })
         })
 
+    }
+
+    // スコア処理
+    scoreProcess(damage) {
+        const playerId = this.props.player.id
+        const roomId = this.props.room.id
+        var playerScore = this.props.player.score
+        var roomScore = this.props.room.score
+        var database = firebase.database()
+        database.ref(`player/${playerId}`).update({
+            "score": playerScore + damage
+        })
+        database.ref(`room/${roomId}`).update({
+            "score": roomScore + damage
+        })
     }
 
     // エフェクト処理

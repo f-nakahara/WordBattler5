@@ -1,4 +1,5 @@
 import React from "react"
+import ReactPlayer from "react-player"
 
 class EnemyImage extends React.Component {
     constructor(props) {
@@ -7,8 +8,10 @@ class EnemyImage extends React.Component {
     render() {
         var effectImage = (<div></div>)
         var enemyImage = (<div></div>)
+        var soundEffect
         if (this.props.effect.value != null && this.props.effect.value != "") {
             effectImage = (<img src={`../../../image/effect/${this.props.effect.value}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
+            soundEffect = (<ReactPlayer url="../../../audio/gun1.mp3" playing style={{ display: "none" }} />)
         }
         if (this.props.enemy.image != null && this.props.enemy.image != "") {
             enemyImage = (<img src={`../../../image/enemy/${this.props.enemy.image}`} style={{ height: `${this.props.window.max / 2.5}px` }} />)
@@ -17,6 +20,7 @@ class EnemyImage extends React.Component {
             <div>
                 {enemyImage}
                 {effectImage}
+                {soundEffect}
             </div>
         )
     }
