@@ -104,6 +104,7 @@ class Play extends React.Component {
 
     // ログ変更
     changeLog(value) {
+        this.changeTheme()
         var data = []
         for (var key in value) {
             data.push(value[key])
@@ -111,7 +112,6 @@ class Play extends React.Component {
         this.setState({
             "log": data
         })
-        this.changeTheme()
     }
 
     // エフェクト変更

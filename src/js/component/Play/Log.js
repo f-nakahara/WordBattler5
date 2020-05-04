@@ -31,7 +31,7 @@ class Log extends React.Component {
                         {this.props.log.map(function (value, index, array) {
                             const logMsg = `●【${value.theme}】<=【${value.keyword}】`
                             const damage =
-                                (value.damage >= 60) ? (<span className="text-danger">{value.damage}ダメージ！！</span>) :
+                                (value.damage >= 60) ? (<span className="text-danger">{value.damage}の大ダメージを与えた！！</span>) :
                                     (value.damage < 0) ? (<span className="text-primary">{value.damage}回復させてしまった・・・</span>) :
                                         (value.damage == 0) ? (<span>効果はないようだ・・・</span>) :
                                             (<span>{value.damage}ダメージ</span>)
