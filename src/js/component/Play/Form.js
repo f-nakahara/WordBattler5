@@ -35,20 +35,32 @@ class Form extends React.Component {
     // ログ処理
     logProcess(keyword, theme, damage) {
         var database = firebase.database()
-        const playerId = this.props.playerId
+        const roomId = this.props.room.id
+        var roomRef = database.ref(`room/${roomId}`)
+        const playerId = this.props.player.id
+        const playerName = this.props.player.name
         database.ref(`player/${playerId}/log`).push({
             "damage": damage,
             "keyword": keyword,
             "theme": theme
+        })
+        roomRef.child(`log`).push({
+            "damage": damage,
+            "keyword": keyword,
+            "theme": theme,
+            "player": {
+                "id": playerId,
+                "name": playerName
+            }
         })
     }
 
     // 攻撃処理
     damageProcess(damage) {
         var database = firebase.database()
-        const playerId = this.props.playerId
-        const roomId = this.props.roomId
+        const roomId = this.props.room.id
         var roomRef = database.ref(`room/${roomId}`)
+        const playerId = this.props.player.id
         var playerRef = database.ref(`player/${playerId}`)
         playerRef.update({
             "damage": damage
@@ -67,7 +79,7 @@ class Form extends React.Component {
     // エフェクト処理
     effectProcess(damage) {
         var database = firebase.database()
-        const roomId = this.props.roomId
+        const roomId = this.props.room.id
         var roomRef = database.ref(`room/${roomId}`)
         var effectList = (this.props.effect.list != null) ? this.props.effect.list : []
 
