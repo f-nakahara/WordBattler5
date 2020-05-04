@@ -8,7 +8,7 @@ class Theme extends React.Component {
         return (
             <div>
                 <div className="card card-body bg-success">
-                    <h2 className="text-light">{this.props.theme}</h2>
+                    <h2 className="text-light">{this.props.theme.value}</h2>
                 </div>
             </div>
         )

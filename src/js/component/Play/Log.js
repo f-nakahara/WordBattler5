@@ -24,7 +24,7 @@ class Log extends React.Component {
                     <div
                         className="card-body"
                         style={{
-                            height: `${this.props.max / 5}px`,
+                            height: `${this.props.window.max / 5}px`,
                             overflow: "scroll"
                         }}
                     >

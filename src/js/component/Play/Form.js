@@ -1,7 +1,6 @@
 import React from "react"
 import axios from "axios"
 import firebase from "firebase"
-import filter from "filter"
 
 class Form extends React.Component {
     constructor(props) {
@@ -19,7 +18,7 @@ class Form extends React.Component {
     handleAttackSubmit(e) {
         e.preventDefault()
         const keyword = this.state.keyword
-        const theme = this.props.theme
+        const theme = this.props.theme.value
         const api = `http://localhost:5000/play/attack?theme=${theme}&keyword=${keyword}`
         axios.get(api)
             .then((res) => {
@@ -70,7 +69,7 @@ class Form extends React.Component {
         var database = firebase.database()
         const roomId = this.props.roomId
         var roomRef = database.ref(`room/${roomId}`)
-        var effectList = this.props.effectList
+        var effectList = (this.props.effect.list != null) ? this.props.effect.list : []
 
         roomRef.once("value", (snapshot) => {
             const oldEffect = snapshot.val().effect
@@ -82,7 +81,7 @@ class Form extends React.Component {
                     return value.match(/min/) && oldEffect != value
                 }
                 else if (damage < 0) {
-                    return value.match(/kaihuku/) && oldEffect != value
+                    return value.match(/kaihuku/)
                 }
                 else {
                     return value.match(/mukou/) && oldEffect != value
@@ -94,11 +93,6 @@ class Form extends React.Component {
                 "effect": newEffect
             })
         })
-    }
-
-    // お題の変更
-    changeTheme() {
-
     }
 
     // キーワード変更

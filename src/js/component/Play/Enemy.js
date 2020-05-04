@@ -6,12 +6,12 @@ class EnemyImage extends React.Component {
     }
     render() {
         var effectImage = (<div></div>)
-        if (this.props.effect != "") {
-            effectImage = (<img src={`../../../image/effect/${this.props.effect}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
+        if (this.props.effect.value != null && this.props.effect.value != "") {
+            effectImage = (<img src={`../../../image/effect/${this.props.effect.value}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
         }
         return (
             <div>
-                <img src={`../../../image/enemy/enemy1.png`} style={{ height: `${this.props.max / 2.5}px` }} />
+                <img src={`../../../image/enemy/enemy1.png`} style={{ height: `${this.props.window.max / 2.5}px` }} />
                 {effectImage}
             </div>
         )

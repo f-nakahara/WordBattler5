@@ -13,14 +13,24 @@ class Play extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
-            "height": window.innerHeight,
-            "width": window.innerWidth,
-            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight,
-            "theme": "",
-            "effectList": [],
-            "themeList": [],
-            "effect": "",
-            "log": []
+            "window": {
+                "height": window.innerHeight,
+                "width": window.innerWidth,
+                "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
+            },
+            "theme": {
+                "list": [],
+                "value": ""
+            },
+            "effect": {
+                "list": [],
+                "value": ""
+            },
+            "log": [],
+            "enemy": {
+                "img": "",
+                "hp": ""
+            }
         }
     }
 
@@ -31,7 +41,10 @@ class Play extends React.Component {
         effectRef.once("value", (snapshot) => {
             const effectList = snapshot.val()
             this.setState({
-                "effectList": effectList
+                "effect": {
+                    "list": effectList,
+                    "value": ""
+                }
             })
         })
     }
@@ -41,7 +54,10 @@ class Play extends React.Component {
         firebase.database().ref("theme").once("value", (snapshot) => {
             const themeList = snapshot.val()
             this.setState({
-                "themeList": themeList
+                "theme": {
+                    "list": themeList,
+                    "value": ""
+                }
             })
             this.changeTheme()
         })
@@ -80,13 +96,19 @@ class Play extends React.Component {
             const key = snapshot.key
             switch (key) {
                 case "effect": this.changeEffect(snapshot.val()); break;
+                case "enemyHp": this.changeEnemyHp(snapshot.val()); break;
             }
         })
     }
 
+    // HPの変更
+    changeEnemyHp(value) {
+
+    }
+
     // お題の変更
     changeTheme() {
-        var themeList = this.state.themeList
+        var themeList = this.state.theme.list
         if (themeList.length == 0) {
             this.getThemeList()
         }
@@ -96,8 +118,10 @@ class Play extends React.Component {
                 return value !== theme
             })
             this.setState({
-                "themeList": themeList,
-                "theme": theme
+                "theme": {
+                    "list": themeList,
+                    "value": theme
+                }
             })
         }
     }
@@ -105,28 +129,32 @@ class Play extends React.Component {
     // ログ変更
     changeLog(value) {
         this.changeTheme()
-        var data = []
+        var log = []
         for (var key in value) {
-            data.push(value[key])
+            log.push(value[key])
         }
         this.setState({
-            "log": data
+            "log": log
         })
     }
 
     // エフェクト変更
     changeEffect(value) {
-        this.setState({
-            "effect": value
-        })
+        var effect = this.state.effect
+        effect.value = value
+        this.setState(
+            effect
+        )
     }
 
     // 画面サイズ変更時実行
     handleResize() {
         this.setState({
-            "height": window.innerHeight,
-            "width": window.innerWidth,
-            "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
+            "window": {
+                "height": window.innerHeight,
+                "width": window.innerWidth,
+                "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
+            }
         })
     }
 
@@ -136,7 +164,7 @@ class Play extends React.Component {
         // const roomId = this.props.location.state.roomId
 
         return (
-            <div style={{ backgroundImage: `url(../../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.height}px` }}>
+            <div style={{ backgroundImage: `url(../../../../image/background/doukutu.png)`, backgroundSize: "cover", height: `${this.state.window.height}px` }}>
                 <EventListener target="window" onResize={this.handleResize.bind(this)} />
                 <Header playerName="koudai" roomName="渕田研究室" />
                 <div className="row m-3">
@@ -145,11 +173,11 @@ class Play extends React.Component {
                     </div>
                     <div className="col-6 text-center">
                         <h1 className="w-100">ステージ1</h1>
-                        <EnemyImage max={this.state.max} effect={this.state.effect} />
+                        <EnemyImage window={this.state.window} effect={this.state.effect} />
                         <Theme theme={this.state.theme} />
                     </div>
                     <div className="col-3">
-                        <Log max={this.state.max} log={this.state.log} />
+                        <Log window={this.state.window} log={this.state.log} />
                     </div>
                 </div>
                 <div className="row m-5">
@@ -159,7 +187,7 @@ class Play extends React.Component {
                 </div>
                 <div className="row m-5">
                     <div className="col-12">
-                        <Form theme={this.state.theme} effectList={this.state.effectList} playerId={"test"} roomId={"roomId"} />
+                        <Form theme={this.state.theme} effect={this.state.effect} playerId={"test"} roomId={"roomId"} />
                     </div>
                 </div>
             </div>
