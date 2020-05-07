@@ -1,26 +1,90 @@
 import React from "react"
-import ReactPlayer from "react-player"
+import firebase from "firebase"
+import Sound from "react-sound"
+soundManager.setup({
+    "debugMode": false,
+    "ignoreMobileRestrictions": true
+})
 
 class EnemyImage extends React.Component {
     constructor(props) {
         super(props)
+        this.state = {
+            "playStatus": Sound.status.PAUSED,
+            "enemy": {
+                "hp": "",
+                "image": "enemy1.png",
+                "next": "2"
+            },
+            "effect": {
+                "list": [],
+                "value": "syoukan4.gif",
+            }
+        }
     }
+
+    // 描画前に実行
+    componentWillMount() {
+        var roomRef = firebase.database().ref(`room/${this.props.room.id}`)
+        this.monitorRoom(roomRef)
+        this.getEnemyImage(roomRef)
+    }
+
+    // room/<roomId>の監視
+    monitorRoom(roomRef) {
+        roomRef.on("child_changed", (snapshot) => {
+            const key = snapshot.key
+            if (key == "effect") {
+                this.changeEffectImage(snapshot.val())
+                this.runEffectSound(snapshot.val())
+            }
+            else if (key == "enemy") this.changeEnemyImage(snapshot.val())
+        })
+    }
+
+    // 敵画像の取得
+    getEnemyImage(roomRef) {
+        roomRef.child("enemy").once("value", (snapshot) => {
+            var enemy = this.state.enemy
+            enemy.image = snapshot.val().image
+            this.setState(enemy)
+        })
+    }
+
+    // 敵画像の変更
+    changeEnemyImage(value) {
+        var enemy = this.state.enemy
+        enemy.image = value.image
+        this.setState(enemy)
+    }
+
+    // エフェクトの変更
+    changeEffectImage(value) {
+        var effect = this.state.effect
+        effect.value = value
+        this.setState({ effect })
+    }
+
+    // 効果音の実行
+    runEffectSound(value) {
+        // 召喚エフェクト時は無視
+        if (!value.match(/syoukan/) && value != null) {
+            this.setState({
+                "playStatus": Sound.status.PLAYING
+            })
+        }
+    }
+
     render() {
-        var effectImage = (<div></div>)
-        var enemyImage = (<div></div>)
-        var soundEffect
-        if (this.props.effect.value != null && this.props.effect.value != "") {
-            effectImage = (<img src={`../../../image/effect/${this.props.effect.value}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />)
-            soundEffect = (<ReactPlayer url="../../../audio/gun1.mp3" playing style={{ display: "none" }} />)
-        }
-        if (this.props.enemy.image != null && this.props.enemy.image != "") {
-            enemyImage = (<img src={`../../../image/enemy/${this.props.enemy.image}`} style={{ height: `${this.props.window.max / 2.5}px` }} />)
-        }
         return (
             <div>
-                {enemyImage}
-                {effectImage}
-                {soundEffect}
+                <img src={`../../../image/enemy/${this.state.enemy.image}`} style={{ height: `${this.props.window.max / 2.5}px` }} />
+                <img src={`../../../image/effect/${this.state.effect.value}`} style={{ zIndex: 10, position: "absolute", left: 0, right: 0, margin: "auto" }} />
+                <Sound
+                    url="../../../audio/gun1.mp3"
+                    playStatus={this.state.playStatus}
+                    style={{ display: "none" }}
+                />
             </div>
         )
     }
@@ -29,13 +93,67 @@ class EnemyImage extends React.Component {
 class HitPoint extends React.Component {
     constructor(props) {
         super(props)
+        this.state = {
+            "enemy": {
+                "hp": "",
+                "maxHp": ""
+            }
+        }
     }
 
+    // 描画前
+    componentWillMount() {
+        var roomRef = firebase.database().ref(`room/${this.props.room.id}`)
+        this.monitorRoom(roomRef)
+        this.getEnemyHp(roomRef)
+    }
+
+    // room/<roomId>の監視
+    monitorRoom(roomRef) {
+        roomRef.on("child_changed", (snapshot) => {
+            const key = snapshot.key
+            if (key == "enemyHp") this.changeEnemyHp(snapshot.val())
+            else if (key == "enemy") this.changeEnemyMaxHp(snapshot.val())
+        })
+    }
+
+    // 敵取得
+    getEnemyHp(roomRef) {
+        roomRef.once("value", (snapshot) => {
+            var enemy = this.state.enemy
+            enemy.hp = snapshot.val().enemyHp
+            enemy.maxHp = snapshot.val().enemy.hp
+            this.setState(enemy)
+        })
+    }
+
+    // 敵体力の変更
+    changeEnemyHp(value) {
+        var enemy = this.state.enemy
+        enemy.hp = value
+        this.setState(enemy)
+    }
+
+    // 敵の最大体力の変更
+    changeEnemyMaxHp(value) {
+        var enemy = this.state.enemy
+        enemy.maxHp = value.hp
+        enemy.hp = value.hp
+        this.setState(enemy)
+    }
 
     render() {
         return (
             <div>
-                <meter min="0" max={this.props.enemy.maxHp} low={this.props.enemy.maxHp / 4} high={this.props.enemy.maxHp / 4 * 3} optimum={this.props.enemy.maxHp} value={this.props.enemy.hp} className="w-100"></meter>
+                <meter
+                    min="0" max={this.state.enemy.maxHp}
+                    low={this.state.enemy.maxHp / 4}
+                    high={this.state.enemy.maxHp / 4 * 3}
+                    optimum={this.state.enemy.maxHp}
+                    value={this.state.enemy.hp}
+                    className="w-100"
+                >
+                </meter>
             </div>
         )
     }

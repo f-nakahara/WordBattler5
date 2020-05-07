@@ -1,7 +1,7 @@
 import React from "react"
 import Header from "./Header"
 import Introduction from "./Home/Introduction"
-import Button from "./Home/Button"
+import CreateRoomButton from "./Home/CreateRoomButton"
 
 class Home extends React.Component {
     render() {
@@ -17,13 +17,13 @@ class Home extends React.Component {
                 </div>
                 <div className="row mt-3">
                     <div className="col-3"></div>
-                    <div className="col-3 p-1"><Button text="ひとりで遊ぶ" link="/play" color="primary" mode="solo" /></div>
-                    <div className="col-3 p-1"><Button text="みんなで遊ぶ" link="/play" color="danger" mode="multi" /></div>
+                    <div className="col-3 p-1"><CreateRoomButton text="ひとりで遊ぶ" link="/play" color="primary" mode="solo" /></div>
+                    {/* <div className="col-3 p-1"><Button text="みんなで遊ぶ" link="/play" color="danger" mode="multi" /></div> */}
                     <div className="col-3"></div>
 
-                    <div className="col-3"></div>
+                    {/* <div className="col-3"></div>
                     <div className="col-6 p-1"><Button text="ランキング" link="/ranking" color="warning" /></div>
-                    <div className="col-3"></div>
+                    <div className="col-3"></div> */}
                 </div>
             </div>
         )

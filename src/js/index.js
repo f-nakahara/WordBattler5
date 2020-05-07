@@ -14,8 +14,8 @@ const root = document.getElementById('root');
 ReactDOM.render(
     <BrowserRouter>
         <div>
-            <Route exact path="/play" component={Home} />
-            <Route exact path="/" component={Play} />
+            <Route exact path="/" component={Home} />
+            <Route exact path="/play" component={Play} />
         </div>
     </BrowserRouter>,
     root

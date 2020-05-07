@@ -1,17 +1,64 @@
 import React from "react"
+import firebase from "firebase"
 
 class Log extends React.Component {
     constructor(props) {
         super(props)
+        this.state = {
+            "log": []
+        }
     }
 
+    // 描画前
+    componentWillMount() {
+        var roomRef = firebase.database().ref(`room/${this.props.room.id}`)
+        this.monitorRoom(roomRef)
+        this.getLogList()
+    }
+
+    // 描画後
     componentDidUpdate() {
-        if (this.props.log.length >= 1) {
+        this.runLogAnimation()
+    }
+
+    // room/<roomId>を監視する
+    monitorRoom(roomRef) {
+        roomRef.on("child_changed", (snapshot) => {
+            const key = snapshot.key
+            if (key == "log") {
+                this.changeLog(snapshot.val())
+                this.runLogAnimation()
+            }
+        })
+    }
+
+    // ログを一番下までアニメーションさせる
+    runLogAnimation() {
+        if (this.state.log.length >= 1) {
             var element = document.getElementById("lastLog")
             element.scrollIntoView({
                 behavior: "smooth"
             })
         }
+    }
+
+    // ログの取得
+    getLogList() {
+        firebase.database().ref(`room/${this.props.room.id}/log`).once("value", (snapshot) => {
+            this.changeLog(snapshot.val())
+        })
+    }
+
+    // ログ変更
+    changeLog(value) {
+        var log = []
+        for (var key in value) {
+            if (value[key]["player"]["id"] == this.props.player.id)
+                log.push(value[key])
+        }
+        this.setState({
+            "log": log
+        })
     }
 
     render() {
@@ -28,7 +75,7 @@ class Log extends React.Component {
                             overflow: "scroll"
                         }}
                     >
-                        {this.props.log.map(function (value, index, array) {
+                        {this.state.log.map(function (value, index, array) {
                             const logMsg = `●【${value.theme}】<=【${value.keyword}】`
                             const damage =
                                 (value.damage >= 60) ? (<span className="text-danger">{value.damage}の大ダメージを与えた！！</span>) :
