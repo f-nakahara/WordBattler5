@@ -26,8 +26,9 @@ class Log extends React.Component {
         roomRef.on("child_changed", (snapshot) => {
             const key = snapshot.key
             if (key == "log") {
-                this.changeLog(snapshot.val())
-                this.runLogAnimation()
+                Promise.resolve()
+                    .then(() => this.changeLog(snapshot.val()))
+                    .then(() => this.runLogAnimation())
             }
         })
     }

@@ -24,7 +24,7 @@ class Term extends React.Component {
             const key = snapshot.key
             if (key == "enemy") this.getTerm(roomRef)
             else if (key == "term") {
-                this.changeTermValue(snapshot.val())
+                this.changeTerm(snapshot.val())
             }
             else if (key == "battle")
                 this.changeBattle(snapshot.val())
@@ -77,7 +77,7 @@ class Term extends React.Component {
     }
 
     // 条件の変更
-    changeTermValue(value) {
+    changeTerm(value) {
         var term = this.state.term
         var termName = value.name
         var termValue = value.value

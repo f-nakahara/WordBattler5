@@ -4,6 +4,7 @@ var path = require('path');
 
 module.exports = {
     context: path.join(__dirname, "src"),
+    mode: "production",
     entry: "./js/index.js",
     module: {
         rules: [{
@@ -20,6 +21,10 @@ module.exports = {
     output: {
         path: __dirname + "/src/",
         filename: "index.min.js"
+    },
+    devServer: {
+        historyApiFallback: true,
+        disableHostCheck: true
     },
     plugins: debug ? [] : [
         new webpack.optimize.OccurrenceOrderPlugin(),

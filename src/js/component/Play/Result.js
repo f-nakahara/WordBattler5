@@ -95,20 +95,24 @@ class Result extends React.Component {
         const playerScore = this.state.player.score
 
         const roomId = this.props.room.id
+        const roomName = this.props.room.name
         const roomScore = this.state.room.score
         const playerNum = this.props.room.playerNum
 
         var database = firebase.database()
         var rankingRef = database.ref(`ranking/${playerNum}/${roomId}`)
-        rankingRef.child("player").update({
-            [playerId]: {
-                "name": playerName,
-                "score": playerScore
-            }
-        })
-        rankingRef.update({
-            "score": roomScore
-        })
+        if (roomScore != 0) {
+            rankingRef.child("player").update({
+                [playerId]: {
+                    "name": playerName,
+                    "score": playerScore
+                }
+            })
+            rankingRef.update({
+                "score": roomScore,
+                "roomName": roomName
+            })
+        }
     }
 
     // プレイヤースコアの変更

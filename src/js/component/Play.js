@@ -12,17 +12,18 @@ import Result from "./Play/Result"
 import ReactPlayer from "react-player"
 import Stage from "./Play/Stage"
 import StandBy from "./Play/StandBy"
+import { Prompt } from "react-router-dom"
 
 class Play extends React.Component {
     constructor(props) {
         super(props)
         this.state = {
             "player": {
-                "id": "-M6ez2lmxvzFg41Ps9T6",
+                "id": this.props.location.state.player.id,
                 "name": this.props.location.state.player.name
             },
             "room": {
-                "id": "-M6ez2ltXqvidOECJCMM",
+                "id": this.props.location.state.room.id,
                 "name": this.props.location.state.room.name,
                 "diffLevel": this.props.location.state.room.diffLevel,
                 "playerNum": this.props.location.state.room.playerNum
@@ -31,37 +32,73 @@ class Play extends React.Component {
                 "height": window.innerHeight,
                 "width": window.innerWidth,
                 "max": (window.innerHeight >= window.innerWidth) ? window.innerWidth : innerHeight
-            }
+            },
+            "deletePlayer": false
         }
     }
 
-    // プレイヤーの取得
-    getPlayer() {
-        var database = firebase.database()
-        const playerId = this.state.player.id
-        database.ref(`player/${playerId}`).once("value", (snapshot) => {
-            var player = this.state.player
-            player.score = snapshot.val().score
-            this.setState(player)
-        })
+    componentWillUnmount() {
+        var result = Promise.all([
+            this.deletePlayer(),
+            this.deleteRoom()
+        ])
+        return result
     }
 
-    // ルームの取得
-    getRoom() {
-        var database = firebase.database()
-        const roomId = this.state.room.id
-        database.ref(`room/${roomId}`).once("value", (snapshot) => {
-            var room = this.state.room
-            room.score = snapshot.val().score
-            room.playerNum = snapshot.val().playerNum
-            this.setState(room)
-        })
+    componentDidUpdate() {
+        if (this.shouldBlockNavigation) {
+            window.onbeforeunload = () => true
+        } else {
+            window.onbeforeunload = undefined
+        }
     }
 
-    // 描画前に実行
-    componentWillMount() {
-        this.getPlayer()
-        this.getRoom()
+    deletePlayer() {
+        var playerRef = firebase.database().ref("player")
+        playerRef.update({
+            [this.state.player.id]: null
+        })
+        var roomRef = firebase.database().ref(`room/${this.state.room.id}`)
+        var result = roomRef.child("player").once("value", (snapshot) => {
+            for (var key in snapshot.val()) {
+                if (snapshot.val()[key] == this.state.player.id) {
+                    roomRef.child("player").update({
+                        [key]: null
+                    })
+                }
+            }
+        })
+        return result
+    }
+
+    deleteRoom() {
+        var roomRef = firebase.database().ref("room")
+        var result = roomRef.child(this.state.room.id).once("value", (snapshot) => {
+            if (snapshot.val().player != null) {
+                var currentPlayerNum = Object.keys(snapshot.val().player).length
+                console.log(currentPlayerNum)
+                if (currentPlayerNum <= 0) {
+                    roomRef.update({
+                        [this.state.room.id]: null
+                    })
+                }
+            } else {
+                roomRef.update({
+                    [this.state.room.id]: null
+                })
+            }
+        })
+        return result
+    }
+
+    shouldBlockNavigation() {
+        Promise.all([
+            this.deletePlayer(),
+            this.deleteRoom()
+        ])
+            .then(() => {
+                return true
+            })
     }
 
     // 画面サイズ変更時実行
@@ -111,6 +148,7 @@ class Play extends React.Component {
                 <StandBy room={this.state.room} player={this.state.player} />
                 <Result player={this.state.player} room={this.state.room} />
                 <ReactPlayer url="../../audio/Crystal_Battle.mp3" volume={0.1} loop={true} playing style={{ display: "none" }} />
+                <Prompt when={this.shouldBlockNavigation} message="ページを離れますか？" />
             </div>
         )
     }

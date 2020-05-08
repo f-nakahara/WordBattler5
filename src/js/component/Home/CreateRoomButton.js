@@ -38,7 +38,8 @@ class CreateRoomButton extends React.Component {
         var player = this.state.player
         const playerName = player.name
         var themeRef = firebase.database().ref("theme")
-        themeRef.once("value", (snapshot) => {
+
+        var resolve = themeRef.once("value", (snapshot) => {
             const themeList = snapshot.val()
             const themeValue = themeList[Math.floor(Math.random() * themeList.length)]
             var playerId = playerRef.push({
@@ -49,8 +50,8 @@ class CreateRoomButton extends React.Component {
             })["path"]["pieces_"][1]
             player.id = playerId
             this.setState(player)
-            this.pushRoomName()
         })
+        return resolve
     }
 
     // ルーム情報をデータベースに登録する
@@ -62,7 +63,7 @@ class CreateRoomButton extends React.Component {
         var diffLevel = room.diffLevel
         var playerId = this.state.player.id
         var roomId = roomRef.push({
-            "battle": true,
+            "battle": false,
             "game": false,
             "diffLevel": diffLevel,
             "effect": "",
@@ -84,7 +85,6 @@ class CreateRoomButton extends React.Component {
         })["path"]["pieces_"][1]
         room.id = roomId
         this.setState(room)
-        this.movePage()
     }
 
     // ページを移動する
@@ -149,8 +149,10 @@ class CreateRoomButton extends React.Component {
     }
 
     handleClick() {
-        this.pushPlayerName()
-
+        Promise.resolve()
+            .then(() => this.pushPlayerName())
+            .then((data) => this.pushRoomName())
+            .then(() => this.movePage())
     }
 
     render() {
@@ -160,7 +162,6 @@ class CreateRoomButton extends React.Component {
                 <Modal
                     className="modal-dialog modal-dialog-centered"
                     isOpen={this.state.modalIsOpen}
-                    onRequestClose={this.closeModal.bind(this)}
                 >
                     <div className="modal-content">
                         <div className="modal-header">
@@ -190,7 +191,7 @@ class CreateRoomButton extends React.Component {
                             </div>
                         </div>
                         <div className="modal-footer">
-                            <button className="btn btn-secondary" onClick={this.handleClick.bind(this)}>決定</button>
+                            <button className="btn btn-primary" onClick={this.handleClick.bind(this)}>決定</button>
                             <button className="btn btn-danger" onClick={this.closeModal.bind(this)}>閉じる</button>
                         </div>
                     </div>

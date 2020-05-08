@@ -28,6 +28,7 @@ class EnemyImage extends React.Component {
         var roomRef = firebase.database().ref(`room/${this.props.room.id}`)
         this.monitorRoom(roomRef)
         this.getEnemyImage(roomRef)
+        this.getEffectValue(roomRef)
     }
 
     // room/<roomId>の監視
@@ -36,9 +37,17 @@ class EnemyImage extends React.Component {
             const key = snapshot.key
             if (key == "effect") {
                 this.changeEffectImage(snapshot.val())
-                this.runEffectSound(snapshot.val())
             }
             else if (key == "enemy") this.changeEnemyImage(snapshot.val())
+        })
+    }
+
+    // エフェクトの取得
+    getEffectValue(roomRef) {
+        roomRef.child("effect").once("value", (snapshot) => {
+            var effect = this.state.effect
+            effect.value = snapshot.val()
+            this.setState(effect)
         })
     }
 
@@ -63,14 +72,21 @@ class EnemyImage extends React.Component {
         var effect = this.state.effect
         effect.value = value
         this.setState({ effect })
+        this.runEffectSound()
     }
 
     // 効果音の実行
-    runEffectSound(value) {
+    runEffectSound() {
+        var effectValue = this.state.effect.value
         // 召喚エフェクト時は無視
-        if (!value.match(/syoukan/) && value != null) {
+        if (!effectValue.match(/syoukan/) && effectValue != null) {
             this.setState({
                 "playStatus": Sound.status.PLAYING
+            })
+        }
+        else {
+            this.setState({
+                "playStatus": Sound.status.PAUSED
             })
         }
     }

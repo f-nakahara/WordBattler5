@@ -5,6 +5,7 @@ import Home from "./component/Home"
 import Play from "./component/Play"
 import firebase from 'firebase';
 import { firebaseConfig } from '../firebase/config.js';
+import Ranking from "./component/Ranking"
 
 export const firebaseApp = firebase.initializeApp(firebaseConfig);
 export const firebaseDb = firebaseApp.database();
@@ -16,6 +17,7 @@ ReactDOM.render(
         <div>
             <Route exact path="/" component={Home} />
             <Route exact path="/play" component={Play} />
+            <Route exact path="/ranking" component={Ranking} />
         </div>
     </BrowserRouter>,
     root

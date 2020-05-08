@@ -7,7 +7,7 @@ class Form extends React.Component {
         super(props)
         this.state = {
             "keyword": "",
-            "formState": true,
+            "formState": false,
             "effect": {
                 "list": [],
                 "value": ""
@@ -24,6 +24,12 @@ class Form extends React.Component {
             "term": {
                 "name": "",
                 "value": ""
+            },
+            "player": {
+                "score": 0
+            },
+            "room": {
+                "score": 0
             }
         }
     }
@@ -35,6 +41,11 @@ class Form extends React.Component {
         this.monitorRoom(roomRef)
         this.getEffectList()
         this.getThemeList()
+        this.getTheme(playerRef)
+        this.getTerm(roomRef)
+        this.getEnemyHp(roomRef)
+        this.getPlayerScore(playerRef)
+        this.getRoomScore(roomRef)
     }
 
     // 描画完了後に実行
@@ -47,6 +58,7 @@ class Form extends React.Component {
         playerRef.on("child_changed", (snapshot) => {
             const key = snapshot.key
             if (key == "theme") this.changeThemeValue(snapshot.val())
+            else if (key == "score") this.changePlayerScore(snapshot.val())
         })
     }
 
@@ -54,7 +66,42 @@ class Form extends React.Component {
     monitorRoom(roomRef) {
         roomRef.on("child_changed", (snapshot) => {
             const key = snapshot.key
-            if (key == "battle") this.changeFormStatus(snapshot.val())
+            if (key == "battle") {
+                Promise.resolve()
+                    .then(() => this.changeFormStatus(snapshot.val()))
+                    .then(() => this.focusAttackInput())
+            }
+            else if (key == "term") this.changeTermValue(snapshot.val())
+            else if (key == "enemyHp") this.changeEnemyHp(snapshot.val())
+            else if (key == "score") this.changeRoomScore(snapshot.val())
+            else if (key == "effect") this.changeEffectValue(snapshot.val())
+        })
+    }
+
+    // プレイヤースコアの取得
+    getPlayerScore(playerRef) {
+        playerRef.child("score").once("value", (snapshot) => {
+            var player = this.state.player
+            player.score = snapshot.val()
+            this.setState(player)
+        })
+    }
+
+    // ルームスコアの取得
+    getRoomScore(roomRef) {
+        roomRef.child("score").once("value", (snapshot) => {
+            var room = this.state.room
+            room.score = snapshot.val()
+            this.setState(room)
+        })
+    }
+
+    // 敵体力の取得
+    getEnemyHp(roomRef) {
+        roomRef.child("enemyHp").once("value", (snapshot) => {
+            var enemy = this.state.enemy
+            enemy.hp = snapshot.val()
+            this.setState(enemy)
         })
     }
 
@@ -69,6 +116,16 @@ class Form extends React.Component {
         })
     }
 
+    // 条件の取得
+    getTerm(roomRef) {
+        roomRef.child("term").once("value", (snapshot) => {
+            var term = this.state.term
+            term.name = snapshot.val().name
+            term.value = snapshot.val().value
+            this.setState(term)
+        })
+    }
+
     // お題リストの取得
     getThemeList() {
         var themeRef = firebase.database().ref("theme")
@@ -80,6 +137,35 @@ class Form extends React.Component {
         })
     }
 
+    // お題の取得
+    getTheme(playerRef) {
+        playerRef.child("theme").once("value", (snapshot) => {
+            var theme = this.state.theme
+            theme.value = snapshot.val()
+            this.setState(theme)
+        })
+    }
+
+    // エフェクトの変更
+    changeEffectValue(value) {
+        var effect = this.state.effect
+        effect.value = value
+        this.setState(effect)
+    }
+
+    // プレイヤースコアの変更
+    changePlayerScore(value) {
+        var player = this.state.player
+        player.score = value
+        this.setState(player)
+    }
+
+    // ルームスコアの取得
+    changeRoomScore(value) {
+        var room = this.state.room
+        room.score = value
+        this.setState(room)
+    }
 
     // お題の変更
     changeThemeValue(value) {
@@ -113,8 +199,16 @@ class Form extends React.Component {
     // 条件の変更
     changeTermValue(value) {
         var term = this.state.term
-        term.value = value
+        term.value = value.value
+        term.name = value.name
         this.setState(term)
+    }
+
+    // 敵体力の変更
+    changeEnemyHp(value) {
+        var enemy = this.state.enemy
+        enemy.hp = value
+        this.setState(enemy)
     }
 
     // 送信ボタン処理
@@ -176,7 +270,12 @@ class Form extends React.Component {
             term.value = term.value - 1
             this.setState(term)
             var roomRef = firebase.database().ref(`room/${this.props.room.id}`)
-            roomRef.update({ term })
+            roomRef.update({
+                "term": {
+                    "name": term.name,
+                    "value": term.value
+                }
+            })
             if (term.value <= 0)
                 this.battleProcess(false)
         }
@@ -187,15 +286,12 @@ class Form extends React.Component {
         var database = firebase.database()
         const roomId = this.props.room.id
         var roomRef = database.ref(`room/${roomId}`)
-        roomRef.once("value", (snapshot) => {
-            const enemyHp = snapshot.val().enemyHp
-            roomRef.update({
-                "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0
-            })
-            if (enemyHp - damage <= 0)
-                this.battleProcess(false)
+        const enemyHp = this.state.enemy.hp
+        roomRef.update({
+            "enemyHp": ((enemyHp - damage) > 0) ? enemyHp - damage : 0
         })
-
+        if (enemyHp - damage <= 0)
+            this.battleProcess(false)
     }
 
     // スコア処理
@@ -203,17 +299,15 @@ class Form extends React.Component {
         const playerId = this.props.player.id
         const roomId = this.props.room.id
         var database = firebase.database()
-        database.ref(`player/${this.props.player.id}/score`).once("value", (snapshot) => {
-            var playerScore = snapshot.val()
-            database.ref(`player/${playerId}`).update({
-                "score": playerScore + damage
-            })
+        var playerScore = this.state.player.score
+        var roomScore = this.state.room.score
+
+        database.ref(`player/${playerId}`).update({
+            "score": playerScore + damage
         })
-        database.ref(`room/${this.props.room.id}/score`).once("value", (snapshot) => {
-            var roomScore = snapshot.val()
-            database.ref(`room/${roomId}`).update({
-                "score": roomScore + damage
-            })
+
+        database.ref(`room/${roomId}`).update({
+            "score": roomScore + damage
         })
         this.focusAttackInput()
     }
@@ -239,32 +333,28 @@ class Form extends React.Component {
 
     // エフェクト処理
     effectProcess(damage) {
-        this.focusAttackInput()
         var database = firebase.database()
         const roomId = this.props.room.id
         var roomRef = database.ref(`room/${roomId}`)
         var effectList = this.state.effect.list
-
-        roomRef.child("effect").once("value", (snapshot) => {
-            const oldEffectValue = snapshot.val()
-            const newEffectList = effectList.filter((value) => {
-                if (damage >= 60) {
-                    return value.match(/big/) && oldEffectValue != value
-                }
-                else if (damage > 0) {
-                    return value.match(/min/) && oldEffectValue != value
-                }
-                else if (damage < 0) {
-                    return value.match(/kaihuku/)
-                }
-                else {
-                    return value.match(/mukou/) && oldEffectValue != value
-                }
-            })
-            const newEffectValue = newEffectList[Math.floor(Math.random() * newEffectList.length)]
-            roomRef.update({
-                "effect": newEffectValue
-            })
+        var oldEffectValue = this.state.effect.value
+        const newEffectList = effectList.filter((value) => {
+            if (damage >= 60) {
+                return value.match(/big/) && oldEffectValue != value
+            }
+            else if (damage > 0) {
+                return value.match(/min/) && oldEffectValue != value
+            }
+            else if (damage < 0) {
+                return value.match(/kaihuku/)
+            }
+            else {
+                return value.match(/mukou/) && oldEffectValue != value
+            }
+        })
+        const newEffectValue = newEffectList[Math.floor(Math.random() * newEffectList.length)]
+        roomRef.update({
+            "effect": newEffectValue
         })
     }
 
